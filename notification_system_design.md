@@ -129,3 +129,60 @@ WHERE id = ?;
 - Archive old notifications.
 - Use Redis caching for frequently accessed data.
 - Add read replicas for scaling reads.
+
+```sql
+SELECT *
+FROM notifications
+WHERE studentID = 1042
+  AND isRead = false
+ORDER BY createdAt ASC;
+```
+
+The query is correct and returns unread notifications for a specific student ordered by creation time.
+
+- Full table scan on large datasets.
+- Unnecessary retrieval using SELECT *.
+- Sorting overhead on large result sets.
+
+```sql
+SELECT id, title, message, createdAt
+FROM notifications
+WHERE studentID = 1042
+  AND isRead = false
+ORDER BY createdAt ASC;
+```
+
+```sql
+CREATE INDEX idx_notifications_student_read_created
+ON notifications(studentID, isRead, createdAt);
+```
+
+Without Index:
+
+```text
+O(N)
+```
+
+With Composite Index:
+
+```text
+O(log N)
+```
+
+Indexes should be created only on frequently filtered, sorted, or joined columns.
+
+Creating indexes on every column increases storage usage and slows INSERT, UPDATE, and DELETE operations.
+
+```sql
+SELECT DISTINCT studentID
+FROM notifications
+WHERE notificationType = 'Placement'
+  AND createdAt >= CURRENT_DATE - INTERVAL '7 days';
+```
+
+- Pagination
+- Database Partitioning
+- Archiving Old Notifications
+- Redis Caching
+- Read Replicas
+```
